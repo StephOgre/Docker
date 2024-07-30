@@ -8,4 +8,4 @@ WORKDIR /app
 
 COPY . . 
 
-CMD ["streamlit", "run", "app.py","--server.port", "3838"]
+CMD ["streamlit", "run", "st.py","--server.port", "3838"]
