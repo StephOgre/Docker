@@ -1,0 +1,1 @@
+cd .helm && helm dependency update . && helm install . --generate-name

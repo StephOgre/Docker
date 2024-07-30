@@ -1,17 +1,36 @@
 import streamlit as st
 import spacy
-
 import spacy_streamlit
+import joblib
+import numpy as np
 
-models = ["drop00"]
-default_text = """
-AIR FRANCE-KLM, plus forte baisse du SRD à la mi-séance du mardi 23 avril 2019 AIR FRANCE-KLM (-4,86% à 10,58 euros) Le syndicat national des pilotes de ligne (SNPL) aurait envoyé un préavis de grève au gouvernement pour exiger le maintien de la représentativité spécifique des pilotes et de la caisse de retraite du personnel navigant. C'est ce qu'a révélé jeudi soir la Tribune. Le mouvement débuterait le lundi 6 mai et s'achèverait le samedi 11 mai. L'ensemble des compagnies aériennes françaises est concerné. La progression des cours de l'or noir est également une mauvaise nouvelle pour les transporteurs aériens.
- """
-spacy_streamlit.visualize(models, default_text)
-#nlp = spacy.load("drop00")
+@st.cache_resource
+def load_spacy_model():
+    return spacy.load("drop00")
+
+@st.cache_resource
+def load_rf_model():
+    return joblib.load("classif.pkl")
+
+nlp = load_spacy_model()
+rf_model = load_rf_model()
+
+st.title("Détection d'entités et Classification de texte")
+
+model_choice = st.radio("Choisissez le modèle :", ["Détection d'entités nommées", "Classification"])
+
+user_input = st.text_area("Entrez votre texte ici:")
 
 
-#text=st.text_area('veuillez rentrer du texte')
-#doc = nlp(text)
-#print(doc)
-
+if st.button("Launch"):
+    if model_choice == "Détection d'entités nommées":
+        doc = nlp(user_input)
+        spacy_streamlit.visualize_ner(doc, labels=nlp.get_pipe("ner").labels)
+    elif model_choice == "Classification":
+        text_features = [user_input]
+        prediction = rf_model.predict(text_features)
+        
+        if prediction[0] == 1:
+            st.write("Classification : Grève")
+        else:
+            st.write("Classification : Pas de grève")
